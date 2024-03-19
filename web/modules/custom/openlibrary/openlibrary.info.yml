@@ -1,0 +1,5 @@
+name: 'Open Library Integration'
+type: module
+description: 'Integrates with Open Library API to fetch book data.'
+core_version_requirement: ^10
+package: Custom

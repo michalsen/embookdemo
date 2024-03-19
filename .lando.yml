@@ -1,0 +1,7 @@
+name: embookdemo
+recipe: pantheon
+config:
+  webroot: web
+  framework: drupal
+  site: embookdemo
+  id: 7cb5007b-534b-4d76-9dac-2bfda331fa51  

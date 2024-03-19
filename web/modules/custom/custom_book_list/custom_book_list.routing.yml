@@ -1,0 +1,7 @@
+custom_book_list.content:
+  path: '/books'
+  defaults:
+    _controller: '\Drupal\custom_book_list\Controller\CustomBookListController::content'
+    _title: 'Book Page'
+  requirements:
+    _permission: 'access content'

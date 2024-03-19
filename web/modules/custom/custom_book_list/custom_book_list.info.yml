@@ -1,0 +1,5 @@
+name: 'Custom Book List'
+type: module
+description: 'Provides a custom route to book'
+core_version_requirement: ^10
+package: Custom

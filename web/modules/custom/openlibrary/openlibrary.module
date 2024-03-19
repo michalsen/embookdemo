@@ -1,0 +1,135 @@
+<?php
+
+/**
+ * @file
+ * Demo module to populate with Books from the OpenLibrary.
+ *
+ * Unsplash API is used to create random images for the books.
+ */
+
+use Drupal\Core\File\FileSystemInterface;
+use Drupal\node\Entity\Node;
+
+/**
+ * Implements hook_cron().
+ */
+function openlibrary_cron() {
+
+  // Get JSON data from the OpenLibrary API.
+  $json_data = openlibrary_get_json_data();
+
+  $image_destination = 'public://book/covers';
+  if (!is_dir($image_destination)) {
+    \Drupal::service('file_system')->mkdir($image_destination, NULL, TRUE);
+  }
+
+  $processed_titles = [];
+
+  // If data is retrieved successfully.
+  if ($json_data) {
+    // Parse JSON data.
+    $books = json_decode($json_data, TRUE);
+
+    // Loop through each book.
+    foreach ($books['works'] as $book) {
+
+      if (!in_array($book['title'], $processed_titles) && !openlibrary_title_exists($book['title'])) {
+        // Create a new book node.
+        $node = Node::create([
+          'type' => 'book',
+          'title' => $book['title'],
+          'field_author' => $book['authors'][0]['name'],
+          'field_published_date' => $book['first_publish_year'],
+          'uid' => 2,
+        ]);
+        $book_title = $book['title'] . '.jpg';
+
+        // Fetch a random image from Unsplash.
+        $image_url = openlibrary_get_random_image();
+
+        if ($image_url) {
+          $file_content = file_get_contents($image_url);
+          $imageFid = \Drupal::service('file.repository')
+            ->writeData(
+                    $file_content,
+                    "$image_destination/$book_title",
+                    FileSystemInterface::EXISTS_REPLACE
+                    );
+          $node->field_cover_image = $imageFid;
+        }
+
+        // Save the node.
+        $node->save();
+
+        $processed_titles[] = $book['title'];
+      }
+    }
+  }
+}
+
+/**
+ * Helper function to fetch JSON data from Open Library API.
+ */
+function openlibrary_get_json_data() {
+  $client = \Drupal::service('http_client_factory')->fromOptions([
+    'timeout' => 5,
+  ]);
+
+  try {
+    // Send GET request to the API.
+    $response = $client->get('https://openlibrary.org/subjects/rome.json');
+
+    // Check if response status is 200 (OK).
+    if ($response->getStatusCode() === 200) {
+      // Return JSON data.
+      return $response->getBody()->getContents();
+    }
+  }
+  catch (\Exception $e) {
+    \Drupal::logger('openlibrary')->error('Error fetching JSON data: @message', ['@message' => $e->getMessage()]);
+  }
+
+  return FALSE;
+}
+
+/**
+ * Helper function to fetch a random image URL from Unsplash.
+ */
+function openlibrary_get_random_image() {
+  $access_key = secrets('unsplash_api');
+  $client = \Drupal::service('http_client_factory')->fromOptions([
+    'timeout' => 5,
+  ]);
+
+  try {
+    // Send GET request to Unsplash API.
+    $response = $client->get('https://api.unsplash.com/photos/random?client_id=' . $access_key);
+
+    // Check if response status is 200 (OK).
+    if ($response->getStatusCode() === 200) {
+      // Decode JSON response.
+      $data = json_decode($response->getBody()->getContents(), TRUE);
+
+      // Extract image URL from response.
+      return $data['urls']['regular'] ?? NULL;
+    }
+  }
+  catch (\Exception $e) {
+    \Drupal::logger('openlibrary')->error('Error fetching random image from Unsplash: @message', ['@message' => $e->getMessage()]);
+  }
+
+  return NULL;
+}
+
+/**
+ * Helper function to check if a node with the given title already exists.
+ */
+function openlibrary_title_exists($title) {
+  $query = \Drupal::entityQuery('node')
+    ->condition('type', 'book')
+    ->condition('title', $title)
+    ->range(0, 1);
+  $result = $query->execute();
+
+  return !empty($result);
+}
