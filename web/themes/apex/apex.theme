@@ -25,5 +25,26 @@ function apex_preprocess_page(array &$variables): void {
  * Implements hook_preprocess_HOOK() for node.html.twig.
  */
 function apex_preprocess_node(array &$variables): void {
-
+  
 }
+
+/**
+ * Implements hook_preprocess_paragraph().
+ */
+function apex_preprocess_paragraph__header_image(&$variables) {
+
+    $paragraph = $variables['paragraph'];
+  
+    // Image field.
+    $image_field = $paragraph->get('field_header_image')->entity;
+  
+    // URL of the image.
+    $image_url = $image_field->createFileUrl();
+  
+    // Title of the paragraph.
+    $title = $paragraph->get('field_header_title')->value;
+  
+    // Pass variables to template.
+    $variables['image_url'] = $image_url;
+    $variables['title'] = $title;
+  }

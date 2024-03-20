@@ -21,10 +21,17 @@
         "pantheon-systems/drupal-integrations": "^10",
         "cweagans/composer-patches": "^1.7",
         "drush/drush": "^11 || ^12",
-        "drupal/paragraphs": "^1.17"
+        "drupal/paragraphs": "^1.17",
+        "drupal/radix": "^5.0",
+        "drupal/layout_paragraphs": "^2.0",
+        "drupal/devel": "^5.1"
     },
     "require-dev": {
-        "drupal/core-dev": "^10"
+        "drupal/core-dev": "^10",
+        "phpstan/phpstan": "^1.10",
+        "phpstan/extension-installer": "^1.3",
+        "mglaman/phpstan-drupal": "^1.2",
+        "phpstan/phpstan-deprecation-rules": "^1.1"
     },
     "conflict": {
         "drupal/drupal": "*"
