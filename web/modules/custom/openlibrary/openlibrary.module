@@ -8,6 +8,7 @@
  */
 
 use Drupal\Core\File\FileSystemInterface;
+use Drupal\Core\Site\Settings;
 use Drupal\node\Entity\Node;
 
 /**
@@ -96,7 +97,9 @@ function openlibrary_get_json_data() {
  * Helper function to fetch a random image URL from Unsplash.
  */
 function openlibrary_get_random_image() {
-  $access_key = 'fQzqOM4UWzN7-Q-MThp7Rpo1s8k3-yRdTGXkpGsdRKc';
+  $settings = Settings::getAll();
+  $access_key = $settings['unsplash_api'];
+
   $client = \Drupal::service('http_client_factory')->fromOptions([
     'timeout' => 5,
   ]);

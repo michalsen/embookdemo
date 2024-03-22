@@ -33,4 +33,16 @@ if (file_exists($local_settings)) {
   include $local_settings;
 }
 
+/*
+ * Secrets file for Unsplash API
+ */
+$secretsFile = $_SERVER['DOCUMENT_ROOT'] . '/sites/default/files/private/secrets.json';
+
+If (file_exists($secretsFile)) {
+  $secrets = json_decode(file_get_contents($secretsFile), 1);
+
+  If (!empty($secrets['unsplash_api'])) {
+    $settings['unsplash_api'] = $secrets['unsplash_api'];
+  }
+}
 
