@@ -126,6 +126,7 @@ function openlibrary_get_random_image() {
  */
 function openlibrary_title_exists($title) {
   $query = \Drupal::entityQuery('node')
+    ->accessCheck(TRUE)
     ->condition('type', 'book')
     ->condition('title', $title)
     ->range(0, 1);

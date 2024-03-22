@@ -8,6 +8,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\file\Entity\File;
 use Drupal\media\Entity\Media;
 use Drupal\image\Entity\ImageStyle;
+use Drupal\Core\File\FileUrlGeneratorInterface;
 use Drupal\Core\Url;
 
 /**
@@ -23,13 +24,25 @@ class CustomBookListController extends ControllerBase {
   protected $entityTypeManager;
 
   /**
+   *The file URL generator.
+   *
+   * @var \Drupal\Core\File\FileUrlGeneratorInterface
+   */
+  protected $fileUrlGenerator;
+  
+  /**
    * Constructs a new CustomBookListController object.
    *
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   The entity type manager.
+   * @param \Drupal\Core\File\FileUrlGeneratorInterface $fileUrlGenerator
+   *   The file URL generator.
    */
-  public function __construct(EntityTypeManagerInterface $entity_type_manager) {
-    $this->entityTypeManager = $entity_type_manager;
+  final public function __construct(
+      EntityTypeManagerInterface $entity_type_manager, 
+      FileUrlGeneratorInterface $fileUrlGenerator) {
+        $this->entityTypeManager = $entity_type_manager;
+        $this->fileUrlGenerator = $fileUrlGenerator;
   }
 
   /**
@@ -37,7 +50,8 @@ class CustomBookListController extends ControllerBase {
    */
   public static function create(ContainerInterface $container) {
     return new static(
-      $container->get('entity_type.manager')
+      $container->get('entity_type.manager'),
+      $container->get('file_url_generator')
     );
   }
 
@@ -48,9 +62,6 @@ class CustomBookListController extends ControllerBase {
    *   A render array representing the content.
    */
   public function content() {
-
-    // Get the content type from the route parameters.
-    $content_type = \Drupal::request()->get('book');
 
     $node_storage = $this->entityTypeManager->getStorage('node');
     
@@ -63,6 +74,9 @@ class CustomBookListController extends ControllerBase {
     $nids = $query->execute();
     
     $nodes = $node_storage->loadMultiple($nids);
+    
+    // Set default cover image
+    $image_url = '';
     
     $rows = [];
     foreach ($nodes as $node) {
@@ -77,7 +91,7 @@ class CustomBookListController extends ControllerBase {
 
          if ($file) {
           $image_uri = $image_style->buildUri($file_uri);
-          $image_url = \Drupal::service('file_url_generator')->generateAbsoluteString($image_uri); // D10 change
+          $image_url = $this->fileUrlGenerator->generateAbsoluteString($image_uri);
          }
       }
 
